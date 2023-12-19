@@ -7,15 +7,15 @@ For the moment, the observers only support Y (vertical) axis tracking.
 ## Installation
 
 ```bash
-npm install react-native-in-view
+npm install react-native-use-in-view
 ````
 
 ```bash
-yarn add react-native-in-view
+yarn add react-native-use-in-view
 ```
 
 ```bash
-pnpm add react-native-in-view
+pnpm add react-native-use-in-view
 ```
 
 ## Features
@@ -33,7 +33,7 @@ import React from 'react'
 
 import { Text, View } from 'react-native'
 
-import { FlatListObserver, ScrollViewObserver, useInView } from 'react-native-in-view'
+import { FlatListObserver, ScrollViewObserver, useInView } from 'react-native-use-in-view'
 
 const Element = () => {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 })
