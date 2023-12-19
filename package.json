@@ -1,0 +1,44 @@
+{
+  "name": "react-native-in-view",
+  "version": "0.1.0",
+  "description": "A versatile and efficient React Native component designed for seamless integration of scroll-based features into mobile applications. This package offers a powerful ScrollView observer that allows developers to easily track and respond to scroll events and element visibility within a ScrollView or FlatList. Ideal for implementing dynamic UI behaviors like lazy loading, animations, or visibility tracking, this component is built to enhance user experience with minimal performance overhead. Featuring customizable thresholds and debounce options, it provides a flexible solution for diverse scroll-related functionalities in React Native projects.",
+  "main": "build/index.js",
+  "scripts": {
+    "---------------------------PROJECT BUILD----------------------": "",
+    "build": "tsc",
+    "---------------------------DEBUG & FORMAT----------------------": "",
+    "format": "prettier --write \"**/*.{html,json,js,jsx,ts,tsx,css,scss}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kvbalib/react-native-in-view.git"
+  },
+  "keywords": [
+    "react-native",
+    "intersection",
+    "observer",
+    "in",
+    "view",
+    "useInView"
+  ],
+  "author": "kvbalib",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kvbalib/react-native-in-view/issues"
+  },
+  "homepage": "https://github.com/kvbalib/react-native-in-view#readme",
+  "dependencies": {
+    "lodash.debounce": "^4.0.8"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@types/lodash.debounce": "^4.0.9",
+    "@types/react": "^18.2.45",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-native": "^0.73.1"
+  }
+}

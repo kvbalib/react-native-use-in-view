@@ -1,0 +1,6 @@
+src/.DS_Store
+.idea
+android
+ios
+node_modules
+build

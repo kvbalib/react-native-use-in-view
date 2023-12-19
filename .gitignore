@@ -1,0 +1,38 @@
+# Dependencies
+/node_modules
+/bower_components
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+
+# Lock files
+yarn.lock
+package-lock.json
+
+# IDE and editor directories
+/.idea
+/.vscode
+/*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Testing
+/coverage
+
+# Production
+/build
+
+# Env
+.env
