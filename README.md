@@ -1,4 +1,4 @@
-# react-native-in-view
+# react-native-use-in-view
 
 A TypeScript-based, lightweight and easy-to-use React Native component for scroll-based functionalities. This library, designed for integration with React Native projects, provides a powerful ScrollView observer for tracking scroll events and element visibility.
 
