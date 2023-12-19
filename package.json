@@ -7,7 +7,12 @@
     "---------------------------PROJECT BUILD----------------------": "",
     "build": "tsc",
     "---------------------------DEBUG & FORMAT----------------------": "",
-    "format": "prettier --write \"**/*.{html,json,js,jsx,ts,tsx,css,scss}\""
+    "format": "prettier --write \"**/*.{html,json,js,jsx,ts,tsx,css,scss}\"",
+    "------------------------------PUBLISH--------------------------": "",
+    "version:patch": "npm version patch",
+    "version:minor": "npm version minor",
+    "version:major": "npm version major",
+    "publish": "npm publish"
   },
   "repository": {
     "type": "git",
@@ -24,9 +29,9 @@
   "author": "kvbalib",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kvbalib/react-native-in-view/issues"
+    "url": "https://github.com/kvbalib/react-native-use-in-view/issues"
   },
-  "homepage": "https://github.com/kvbalib/react-native-in-view#readme",
+  "homepage": "https://github.com/kvbalib/react-native-use-in-view#readme",
   "dependencies": {
     "lodash.debounce": "^4.0.8"
   },
@@ -38,7 +43,7 @@
     "typescript": "^5.3.3"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-native": "^0.73.1"
+    "react": ">=18.0.0",
+    "react-native": ">=0.70.0"
   }
 }
