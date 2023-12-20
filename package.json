@@ -1,6 +1,6 @@
 {
   "name": "react-native-use-in-view",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A versatile and efficient React Native component designed for seamless integration of scroll-based features into mobile applications. This package offers a powerful ScrollView observer that allows developers to easily track and respond to scroll events and element visibility within a ScrollView or FlatList. Ideal for implementing dynamic UI behaviors like lazy loading, animations, or visibility tracking, this component is built to enhance user experience with minimal performance overhead. Featuring customizable thresholds and debounce options, it provides a flexible solution for diverse scroll-related functionalities in React Native projects.",
   "main": "build/index.js",
   "scripts": {
