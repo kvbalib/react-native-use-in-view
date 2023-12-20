@@ -26,10 +26,6 @@ export interface IUseInViewOptions {
    */
   initialInView?: boolean
   /**
-   * Margin around the root. Can have values similar to the CSS margin property,
-   */
-  rootMargin?: number
-  /**
    * Trigger the observer only once - it will not track the element after it is in view.
    * @default false
    */
