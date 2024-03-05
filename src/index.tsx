@@ -70,7 +70,7 @@ export const useInView = ({
   }
 
   useEffect(() => {
-    if (scrollViewHeight > 0) checkVerticalVisibility()
+    checkVerticalVisibility()
   }, [y, scrollViewHeight])
 
   return { ref, inView }
