@@ -73,11 +73,17 @@ export const useInView = ({
     checkVerticalVisibility()
   }, [y, scrollViewHeight])
 
-  return { ref, inView }
+  return { ref, inView, scrollY: y }
+}
+
+export const useScrollPosition = () => {
+  const { y } = useContext(ViewContext)
+
+  return { scrollY: y }
 }
 
 export const ScrollViewObserver = forwardRef<ScrollView, IScrollViewObserverProps>(
-  ({ scrollEventThrottle = 512, ...rest }, ref) => {
+  ({ scrollEventThrottle = 512, onScroll, onLayout, ...rest }, ref) => {
     const internalRef = useRef<ScrollView>(null)
     const refToUse = ref || internalRef
     const [scrollY, setScrollY] = useState(0)
@@ -90,12 +96,14 @@ export const ScrollViewObserver = forwardRef<ScrollView, IScrollViewObserverProp
       []
     )
 
-    const onLayout = (event: LayoutChangeEvent) => {
+    const handleLayout = (event: LayoutChangeEvent) => {
       debounceSetViewHeight(event.nativeEvent.layout.height)
+      if (onLayout) onLayout(event)
     }
 
-    const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       setScrollY(event.nativeEvent.contentOffset.y)
+      if (onScroll) onScroll(event)
     }
 
     return (
@@ -108,8 +116,8 @@ export const ScrollViewObserver = forwardRef<ScrollView, IScrollViewObserverProp
       >
         <ScrollView
           ref={refToUse}
-          onLayout={onLayout}
-          onScroll={onScroll}
+          onLayout={handleLayout}
+          onScroll={handleScroll}
           scrollEventThrottle={scrollEventThrottle}
           {...rest}
         />
@@ -121,6 +129,8 @@ export const ScrollViewObserver = forwardRef<ScrollView, IScrollViewObserverProp
 export const FlatListObserver = <K = any,>({
   scrollEventThrottle = 512,
   flatListRef,
+  onLayout,
+  onScroll,
   ...rest
 }: IFlatListObserverProps<K>) => {
   const internalRef = useRef<FlatList<K>>(null)
@@ -135,12 +145,14 @@ export const FlatListObserver = <K = any,>({
     []
   )
 
-  const onLayout = (event: LayoutChangeEvent) => {
+  const handleLayout = (event: LayoutChangeEvent) => {
     debounceSetViewHeight(event.nativeEvent.layout.height)
+    if (onLayout) onLayout(event)
   }
 
-  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     setScrollY(event.nativeEvent.contentOffset.y)
+    if (onScroll) onScroll(event)
   }
 
   return (
@@ -153,8 +165,8 @@ export const FlatListObserver = <K = any,>({
     >
       <FlatList<K>
         ref={refToUse}
-        onLayout={onLayout}
-        onScroll={onScroll}
+        onLayout={handleLayout}
+        onScroll={handleScroll}
         scrollEventThrottle={scrollEventThrottle}
         {...rest}
       />
