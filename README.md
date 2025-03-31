@@ -28,6 +28,8 @@ pnpm add react-native-use-in-view
 
 ## Usage
 
+The `ref` must be attached to a native component (e.g., View, Text) or a custom component that forwards the ref to a native component.
+
 ```jsx
 import React from 'react'
 

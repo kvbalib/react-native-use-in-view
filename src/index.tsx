@@ -33,6 +33,10 @@ const ViewContext = createContext<IObserverContext>({
   scrollViewHeight: 0,
 })
 
+/**
+ * Hook to detect if an element is in the viewport.
+ * The `ref` must be attached to a native component (e.g., View, Text) or a custom component that forwards the ref to a native component.
+ */
 export const useInView = ({
   initialInView = false,
   threshold = 0,
@@ -43,35 +47,61 @@ export const useInView = ({
   const { rootRef, y, scrollViewHeight } = useContext(ViewContext)
 
   const checkVerticalVisibility = () => {
-    if (scrollViewHeight > 0 && ref.current && typeof rootRef === 'object') {
-      const rootHandle = findNodeHandle(rootRef.current)
+    if (triggerOnce && inView) return
+    if (scrollViewHeight <= 0 || !ref.current || typeof rootRef !== 'object') return
 
-      if (rootHandle) {
-        ref.current.measureLayout(
-          rootHandle,
-          (left, top, width, height) => {
-            const visibleTop = y
-            const visibleBottom = y + scrollViewHeight
-            const elementTop = top
-            const elementBottom = top + height
-            const fractionInSight =
-              (Math.min(elementBottom, visibleBottom) - Math.max(elementTop, visibleTop)) / height
+    const rootHandle = findNodeHandle(rootRef.current)
 
-            if (fractionInSight >= threshold) {
-              setInView(true)
-            } else if (!triggerOnce) {
-              setInView(false)
-            }
-          },
-          () => {}
-        )
-      }
+    if (!rootHandle) return
+
+    if (typeof ref.current.measureLayout !== 'function') {
+      console.warn(
+        'useInView: ref is not attached to a native component. Ensure the ref is attached to a native component like View or forwarded correctly.'
+      )
+      return
     }
+
+    ref.current.measureLayout(
+      rootHandle,
+      (left, top, width, height) => {
+        const visibleTop = y
+        const visibleBottom = y + scrollViewHeight
+        const elementTop = top
+        const elementBottom = top + height
+        const fractionInSight =
+          (Math.min(elementBottom, visibleBottom) - Math.max(elementTop, visibleTop)) / height
+
+        if (fractionInSight >= threshold) {
+          setInView(true)
+        } else if (!triggerOnce) {
+          setInView(false)
+        }
+      },
+      () => {}
+    )
   }
 
+  const debouncedCheck = useCallback(
+    debounce(() => {
+      checkVerticalVisibility()
+    }, 500),
+    [y, scrollViewHeight]
+  )
+
   useEffect(() => {
-    checkVerticalVisibility()
-  }, [y, scrollViewHeight])
+    // Initial check with a 0ms delay to ensure mounting is complete
+    const initialTimer = setTimeout(() => {
+      checkVerticalVisibility()
+    }, 0)
+
+    // Debounced check for scroll events
+    debouncedCheck()
+
+    return () => {
+      clearTimeout(initialTimer)
+      debouncedCheck.cancel()
+    }
+  }, [debouncedCheck, checkVerticalVisibility])
 
   return { ref, inView, scrollY: y }
 }
