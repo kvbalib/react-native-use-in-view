@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  ForwardedRef,
   forwardRef,
   useCallback,
   useContext,
@@ -7,7 +8,6 @@ import React, {
   useRef,
   useState,
 } from 'react'
-
 import {
   FlatList,
   LayoutChangeEvent,
@@ -15,137 +15,140 @@ import {
   NativeSyntheticEvent,
   ScrollView,
   View,
-  findNodeHandle,
 } from 'react-native'
 
-import debounce from 'lodash.debounce'
-
-import {
+import type {
   IFlatListObserverProps,
   IObserverContext,
   IScrollViewObserverProps,
   IUseInViewOptions,
+  ScrollListener,
+  UseScrollListenersResult,
 } from './ScrollViewObserver.types'
 
-const ViewContext = createContext<IObserverContext>({
-  rootRef: { current: null },
-  y: 0,
-  scrollViewHeight: 0,
-})
+const ViewContext = createContext<IObserverContext | null>(null)
 
 /**
  * Hook to detect if an element is in the viewport.
  * The `ref` must be attached to a native component (e.g., View, Text) or a custom component that forwards the ref to a native component.
  */
-export const useInView = ({
-  initialInView = false,
-  threshold = 0,
-  triggerOnce = false,
-}: IUseInViewOptions = {}) => {
-  const ref = useRef<View>(null)
+export const useInView = (options?: IUseInViewOptions) => {
+  const { initialInView = false, threshold = 0, triggerOnce = false } = options || {}
   const [inView, setInView] = useState(initialInView)
-  const { rootRef, y, scrollViewHeight } = useContext(ViewContext)
+  const elementRef = useRef<View>(null)
+  const scrollContext = useContext(ViewContext)
 
-  const checkVerticalVisibility = () => {
-    if (triggerOnce && inView) return
-    if (scrollViewHeight <= 0 || !ref.current || typeof rootRef !== 'object') return
+  const checkInView = useCallback(() => {
+    if (!elementRef.current?.measureInWindow) return
 
-    const rootHandle = findNodeHandle(rootRef.current)
-
-    if (!rootHandle) return
-
-    if (typeof ref.current.measureLayout !== 'function') {
+    if (!scrollContext?.scrollViewRect) {
       console.warn(
-        'useInView: ref is not attached to a native component. Ensure the ref is attached to a native component like View or forwarded correctly.'
+        'useInView: Scroll context is not available. Ensure useInView is used within a ScrollViewObserver or FlatListObserver.'
       )
       return
     }
 
-    ref.current.measureLayout(
-      rootHandle,
-      (left, top, width, height) => {
-        const visibleTop = y
-        const visibleBottom = y + scrollViewHeight
-        const elementTop = top
-        const elementBottom = top + height
-        const fractionInSight =
-          (Math.min(elementBottom, visibleBottom) - Math.max(elementTop, visibleTop)) / height
+    const { scrollViewRect } = scrollContext
+    const {
+      x: scrollViewX,
+      y: scrollViewY,
+      width: scrollViewWidth,
+      height: scrollViewHeight,
+    } = scrollViewRect
 
-        if (fractionInSight >= threshold) {
-          setInView(true)
-        } else if (!triggerOnce) {
-          setInView(false)
-        }
-      },
-      () => {}
-    )
-  }
+    elementRef.current.measureInWindow((x, y, width, height) => {
+      const elementRight = x + width
+      const elementBottom = y + height
 
-  const debouncedCheck = useCallback(
-    debounce(() => {
-      checkVerticalVisibility()
-    }, 500),
-    [y, scrollViewHeight]
-  )
+      const isVisible =
+        elementRight > scrollViewX - threshold &&
+        elementBottom > scrollViewY - threshold &&
+        x < scrollViewX + scrollViewWidth + threshold &&
+        y < scrollViewY + scrollViewHeight + threshold
+
+      if (isVisible && !inView) setInView(true)
+      else if (!isVisible && !triggerOnce && inView) setInView(false)
+    })
+  }, [inView, threshold])
 
   useEffect(() => {
-    // Initial check with a 0ms delay to ensure mounting is complete
-    const initialTimer = setTimeout(() => {
-      checkVerticalVisibility()
-    }, 0)
+    const timeout = setTimeout(checkInView, 0)
+    return () => clearTimeout(timeout)
+  }, [checkInView])
 
-    // Debounced check for scroll events
-    debouncedCheck()
-
+  useEffect(() => {
+    if (scrollContext) scrollContext.registerScrollListener(checkInView)
     return () => {
-      clearTimeout(initialTimer)
-      debouncedCheck.cancel()
+      if (scrollContext) scrollContext.unregisterScrollListener(checkInView)
     }
-  }, [debouncedCheck, checkVerticalVisibility])
+  }, [scrollContext, checkInView])
 
-  return { ref, inView, scrollY: y }
+  return { ref: elementRef, inView }
 }
 
-export const useScrollPosition = () => {
-  const { y } = useContext(ViewContext)
+/**
+ * Generic hook to manage scroll listeners.
+ */
+const useScrollListeners = <T extends ScrollView | FlatList<any> = ScrollView>(options: {
+  ref?: ForwardedRef<T>
+  onLayout?: (event: LayoutChangeEvent) => void
+}): UseScrollListenersResult<T> => {
+  const listeners = useRef(new Set<ScrollListener>())
+  const internalRef = useRef<T>(null)
+  const refToUse = (options.ref ?? internalRef) as React.RefObject<T>
+  const [scrollViewRect, setScrollViewRect] = useState<
+    UseScrollListenersResult<T>['scrollViewRect']
+  >({ x: 0, y: 0, width: 0, height: 0 })
 
-  return { scrollY: y }
+  const registerScrollListener = useCallback((listener: ScrollListener) => {
+    listeners.current.add(listener)
+  }, [])
+
+  const unregisterScrollListener = useCallback((listener: ScrollListener) => {
+    listeners.current.delete(listener)
+  }, [])
+
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    listeners.current.forEach((listener) => listener())
+  }, [])
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    setScrollViewRect(event.nativeEvent.layout)
+    if (options.onLayout) options.onLayout(event)
+  }
+
+  return {
+    scrollRef: refToUse,
+    scrollViewRect,
+    registerScrollListener,
+    unregisterScrollListener,
+    handleScroll,
+    handleLayout,
+  }
 }
 
+/**
+ * Implementation of a ScrollView with in-view detection and scroll listeners.
+ * This component is used to wrap a ScrollView and provide in-view detection for its children.
+ * It takes all the props of a standard ScrollView and forwards the ref to the internal ScrollView.
+ */
 export const ScrollViewObserver = forwardRef<ScrollView, IScrollViewObserverProps>(
-  ({ scrollEventThrottle = 512, onScroll, onLayout, ...rest }, ref) => {
-    const internalRef = useRef<ScrollView>(null)
-    const refToUse = ref || internalRef
-    const [scrollY, setScrollY] = useState(0)
-    const [scrollViewHeight, setScrollViewHeight] = useState(0)
-
-    const debounceSetViewHeight = useCallback(
-      debounce((height: number) => {
-        setScrollViewHeight(height)
-      }, 500),
-      []
-    )
-
-    const handleLayout = (event: LayoutChangeEvent) => {
-      debounceSetViewHeight(event.nativeEvent.layout.height)
-      if (onLayout) onLayout(event)
-    }
-
-    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      setScrollY(event.nativeEvent.contentOffset.y)
-      if (onScroll) onScroll(event)
-    }
+  ({ scrollEventThrottle = 100, onScroll, onLayout, ...rest }, ref) => {
+    const {
+      scrollRef,
+      scrollViewRect,
+      registerScrollListener,
+      unregisterScrollListener,
+      handleScroll,
+      handleLayout,
+    } = useScrollListeners({ ref, onLayout })
 
     return (
       <ViewContext.Provider
-        value={{
-          rootRef: refToUse,
-          y: scrollY,
-          scrollViewHeight,
-        }}
+        value={{ registerScrollListener, unregisterScrollListener, scrollViewRect, scrollRef }}
       >
         <ScrollView
-          ref={refToUse}
+          ref={scrollRef}
           onLayout={handleLayout}
           onScroll={handleScroll}
           scrollEventThrottle={scrollEventThrottle}
@@ -156,45 +159,33 @@ export const ScrollViewObserver = forwardRef<ScrollView, IScrollViewObserverProp
   }
 )
 
+/**
+ * Implementation of a FlatList with in-view detection and scroll listeners.
+ * This component is used to wrap a FlatList and provide in-view detection for its children.
+ * It takes all the props of a standard FlatList and forwards the ref to the internal FlatList.
+ */
 export const FlatListObserver = <K = any,>({
-  scrollEventThrottle = 512,
+  scrollEventThrottle = 100,
   flatListRef,
   onLayout,
   onScroll,
   ...rest
 }: IFlatListObserverProps<K>) => {
-  const internalRef = useRef<FlatList<K>>(null)
-  const refToUse = flatListRef || internalRef
-  const [scrollY, setScrollY] = useState(0)
-  const [scrollViewHeight, setScrollViewHeight] = useState(0)
-
-  const debounceSetViewHeight = useCallback(
-    debounce((height: number) => {
-      setScrollViewHeight(height)
-    }, 500),
-    []
-  )
-
-  const handleLayout = (event: LayoutChangeEvent) => {
-    debounceSetViewHeight(event.nativeEvent.layout.height)
-    if (onLayout) onLayout(event)
-  }
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setScrollY(event.nativeEvent.contentOffset.y)
-    if (onScroll) onScroll(event)
-  }
+  const {
+    scrollRef,
+    scrollViewRect,
+    registerScrollListener,
+    unregisterScrollListener,
+    handleScroll,
+    handleLayout,
+  } = useScrollListeners({ ref: flatListRef, onLayout })
 
   return (
     <ViewContext.Provider
-      value={{
-        rootRef: refToUse,
-        y: scrollY,
-        scrollViewHeight,
-      }}
+      value={{ registerScrollListener, unregisterScrollListener, scrollViewRect, scrollRef }}
     >
       <FlatList<K>
-        ref={refToUse}
+        ref={scrollRef}
         onLayout={handleLayout}
         onScroll={handleScroll}
         scrollEventThrottle={scrollEventThrottle}

@@ -33,18 +33,15 @@
     "url": "https://github.com/kvbalib/react-native-use-in-view/issues"
   },
   "homepage": "https://github.com/kvbalib/react-native-use-in-view#readme",
-  "dependencies": {
-    "lodash.debounce": "^4.0.8"
-  },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "@types/lodash.debounce": "^4.0.9",
-    "@types/react": "^18.2.45",
-    "prettier": "^3.1.1",
-    "typescript": "^5.3.3"
+    "@types/react": "^18.3.1",
+    "prettier": "^3.5.3",
+    "typescript": "~5.3.3"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
-    "react-native": ">=0.70.0"
+    "react-native": ">=0.76.0"
   }
 }

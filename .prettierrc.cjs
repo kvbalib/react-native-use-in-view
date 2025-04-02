@@ -9,14 +9,23 @@ module.exports = {
     tabWidth: 2,
     trailingComma: 'es5',
     useTabs: false,
-    plugins: ["@trivago/prettier-plugin-sort-imports"],
+    plugins: ['@ianvs/prettier-plugin-sort-imports'],
     importOrder: [
-        "^(react/(.*)$)|^(react$)",
-        "^(react-native/(.*)$)|^(react-native$)",
-        '<THIRD_PARTY_MODULES>',
-        "^@/(.*)$",
-        '^[./]',
+        '^(react/(.*)$)|^(react$)', // React
+        '^(react-native/(.*)$)|^(react-native$)', // React Native
+        '^(expo/(.*)$)|^(expo$)', // Expo
+        "", // Empty line
+        '^@/(.*)$|^[./]\'', // Internal imports
+        '<THIRD_PARTY_MODULES>', // Third party modules
+        "", // Empty line
+        "<TYPES>^(node:)", // Node modules
+        "<TYPES>", // Types
+        "", // Empty line
+        "<TYPES>^[.]", // Internal
+        '^.*\\.types.ts', // Types
+        "", // Empty line
+        '^.*\\.styles.ts', // Styles
     ],
-    importOrderSeparation: true,
-    importOrderSortSpecifiers: true,
+    importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
+    importOrderTypeScriptVersion: '5.0.0',
 }

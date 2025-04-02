@@ -1,10 +1,10 @@
 # react-native-use-in-view
 
-A TypeScript-based, lightweight and easy-to-use React Native component for scroll-based functionalities. This library, designed for integration with React Native projects, provides a powerful ScrollView observer for tracking scroll events and element visibility.
-
-For the moment, the observers only support Y (vertical) axis tracking.
+A TypeScript-based, lightweight, and easy-to-use React Native library for scroll-based functionalities. This library provides powerful observers for `ScrollView` and `FlatList`, enabling tracking of scroll events and element visibility within scrollable views. Designed for seamless integration with React Native projects, it offers enhanced accuracy and flexibility.
 
 ## Installation
+
+Install the library using your preferred package manager:
 
 ```bash
 npm install react-native-use-in-view
@@ -20,15 +20,17 @@ pnpm add react-native-use-in-view
 
 ## Features
 
-- **Lightweight**: Minimal performance overhead.
+- **Lightweight**: Minimal performance overhead with throttled scroll events.
 - **TypeScript Only**: Enhanced type safety and developer experience.
-- **Scroll Observing**: Track and respond to scroll events within ScrollView or FlatList.
-- **Visibility Tracking**: Efficiently determine the visibility of elements in a scrollable view.
-- **Versitile**: Works with expo and bare React Native projects.
+- **Scroll Observing**: Track and respond to scroll events within `ScrollView` and `FlatList`.
+- **Visibility Tracking**: Accurately determine the visibility of elements within the scroll view’s visible area, even if the scroll view is not full-screen.
+- **Versitile**: Compatible with Expo, bare React Native projects, the New Architecture (Fabric and TurboModules), and Hermes JavaScript engine.
 
 ## Usage
 
-The `ref` must be attached to a native component (e.g., View, Text) or a custom component that forwards the ref to a native component.
+The `useInView` hook requires a `ref` to be attached to a native component (e.g., `View`, `Text`) or a custom component that forwards the ref to a native component. Wrap your `ScrollView` or `FlatList` with S`crollViewObserver` or `FlatListObserver` to enable visibility detection.
+
+Here are examples demonstrating usage with both observers:
 
 ```jsx
 import React from 'react'
@@ -68,14 +70,22 @@ const AppWithScrollView = () => {
 }
 ```
 
-Both `FlatListObserver` and `ScrollViewObserver` accept all props of their respective components and work as their wrappers.
+Both `FlatListObserver` and `ScrollViewObserver` accept all props of their respective components (`FlatList` and `ScrollView`) and act as wrappers, forwarding props to the underlying components.
 
 ## API
 
 ### `useInView`
 
-| Option           | Default value | Description                                                                                                                                                                                                                                                    |
-|------------------|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|threshold         | `0`           | A number between 0 and 1 indicating the percentage of the element's height that must be visible in order to trigger the `inView` state. In special cases, it can be a negative value, indicating how far from the viewport should the visibility be triggered. |
-|triggerOnce       | `false`       | A boolean indicating whether the `inView` state should be triggered only once.                                                                                                                                                                                 |
-|initialInView    | `false`       | A boolean indicating whether the `inView` state should be initially set to `true`.                                                                                                                                                                             |
+The `useInView` hook detects whether an element is within the visible area of its parent scroll view. It returns an object with a `ref` to attach to the element and an `inView` boolean indicating visibility.
+
+| Option            | Default value | Description                                                                                                                                                                                                                                                                                 |
+|-------------------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| threshold         | `0`           | The number of pixels outside the scroll view’s visible area within which the element is considered visible. Positive values extend the bounds outward; negative values shrink them inward. For example, `-100` means the element is in view if it’s within 100 pixels outside the viewport. |
+| triggerOnce       | `false`       | A boolean indicating whether the `inView` state should update only once when the element becomes visible, rather than continuously as it enters or leaves the viewport.                                                                                                                     |
+| initialInView     | `false`       | A boolean indicating whether the inView state should be initially set to `true` before any visibility checks occur.                                                                                                                                                                         |
+| onChange          | `undefined`    | A callback function that is called whenever the inView state changes. It receives the new inView state as an argument.                                                                                                                                                                     |
+
+## Notes
+
+- **Viewport Definition**: The viewport is defined as the visible area of the ScrollView or FlatList, not the entire window. This ensures accurate visibility detection regardless of the scroll view’s size or position on the screen.
+- **Scroll Direction**: The library supports both vertical (Y-axis) and horizontal (X-axis) scrolling, with visibility checks performed in both dimensions.

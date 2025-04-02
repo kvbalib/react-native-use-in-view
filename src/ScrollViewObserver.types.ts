@@ -1,34 +1,31 @@
 import { Ref, RefObject } from 'react'
+import {
+  FlatList,
+  FlatListProps,
+  LayoutChangeEvent,
+  ScrollView,
+  ScrollViewProps,
+} from 'react-native'
+import { LayoutRectangle } from 'react-native/Libraries/Types/CoreEventTypes'
 
-import { FlatList, FlatListProps, ScrollView, ScrollViewProps } from 'react-native'
+export type ScrollListener = () => void
 
 export interface IObserverContext {
-  rootRef:
-    | RefObject<ScrollView>
-    | ((instance: ScrollView | null) => void)
-    | RefObject<FlatList>
-    | ((instance: FlatList | null) => void)
-  y: number
-  scrollViewHeight: number
+  registerScrollListener: (listener: ScrollListener) => void
+  unregisterScrollListener: (listener: ScrollListener) => void
+  scrollRef: RefObject<ScrollView | FlatList>
+  scrollViewRect: LayoutRectangle
 }
 
 export interface IUseInViewOptions {
   /**
-   * The percentage of the element that should be visible before triggering the callback.
-   * 1 = 100% visible, 0.5 = 50% visible, etc.
-   * Can be a negative number, indicating how far outside the viewport the element must be before it is considered visible.
-   * For example, use -0.1 for an intersection observer that triggers even if the element is 10% outside the viewport.
+   * The number of pixels outside the viewport within which the element is considered visible.
+   * Positive values extend the viewport bounds outward; negative values shrink them inward.
+   * For example, -100 means the element is in view if it’s within 100 pixels outside the viewport.
    * @default 0
    */
   threshold?: number
-  /**
-   * Whether the element should be in view initially.
-   */
   initialInView?: boolean
-  /**
-   * Trigger the observer only once - it will not track the element after it is in view.
-   * @default false
-   */
   triggerOnce?: boolean
 }
 
@@ -36,4 +33,13 @@ export interface IScrollViewObserverProps extends ScrollViewProps {}
 
 export interface IFlatListObserverProps<K> extends FlatListProps<K> {
   flatListRef?: Ref<FlatList<K>>
+}
+
+export interface UseScrollListenersResult<T extends ScrollView | FlatList> {
+  scrollRef: RefObject<T>
+  scrollViewRect: IObserverContext['scrollViewRect']
+  registerScrollListener: (listener: ScrollListener) => void
+  unregisterScrollListener: (listener: ScrollListener) => void
+  handleScroll: (event: any) => void
+  handleLayout: (event: LayoutChangeEvent) => void
 }
