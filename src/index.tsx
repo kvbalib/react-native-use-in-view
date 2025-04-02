@@ -1,30 +1,13 @@
-import React, {
-  createContext,
-  ForwardedRef,
-  forwardRef,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
-import {
-  FlatList,
-  LayoutChangeEvent,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  View,
-} from 'react-native'
+import React, { createContext, ForwardedRef, forwardRef, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { FlatList, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
 
-import type {
-  IFlatListObserverProps,
-  IObserverContext,
-  IScrollViewObserverProps,
-  IUseInViewOptions,
-  ScrollListener,
-  UseScrollListenersResult,
-} from './ScrollViewObserver.types'
+
+
+import type { IFlatListObserverProps, IObserverContext, IScrollViewObserverProps, IUseInViewOptions, ScrollListener, UseScrollListenersResult } from './ScrollViewObserver.types';
+
+
+
+
 
 const ViewContext = createContext<IObserverContext | null>(null)
 
@@ -33,7 +16,7 @@ const ViewContext = createContext<IObserverContext | null>(null)
  * The `ref` must be attached to a native component (e.g., View, Text) or a custom component that forwards the ref to a native component.
  */
 export const useInView = (options?: IUseInViewOptions) => {
-  const { initialInView = false, threshold = 0, triggerOnce = false } = options || {}
+  const { initialInView = false, threshold = 0, triggerOnce = false, onChange } = options || {}
   const [inView, setInView] = useState(initialInView)
   const elementRef = useRef<View>(null)
   const scrollContext = useContext(ViewContext)
@@ -66,8 +49,13 @@ export const useInView = (options?: IUseInViewOptions) => {
         x < scrollViewX + scrollViewWidth + threshold &&
         y < scrollViewY + scrollViewHeight + threshold
 
-      if (isVisible && !inView) setInView(true)
-      else if (!isVisible && !triggerOnce && inView) setInView(false)
+      if (isVisible && !inView) {
+        setInView(true)
+        onChange?.(true)
+      } else if (!isVisible && !triggerOnce && inView) {
+        setInView(false)
+        onChange?.(false)
+      }
     })
   }, [inView, threshold])
 

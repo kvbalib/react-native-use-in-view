@@ -27,6 +27,7 @@ export interface IUseInViewOptions {
   threshold?: number
   initialInView?: boolean
   triggerOnce?: boolean
+  onChange?: (inView: boolean) => void
 }
 
 export interface IScrollViewObserverProps extends ScrollViewProps {}
